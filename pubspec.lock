@@ -60,6 +60,15 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.6.2"
+  photo_provider:
+    dependency: "direct main"
+    description:
+      path: "."
+      ref: HEAD
+      resolved-ref: fb0007e7f29db69364984aa0c1f463e311294f6d
+      url: "git://github.com/sp0cket/flutter_image_provider.git"
+    source: git
+    version: "0.1.0"
   quiver:
     dependency: transitive
     description:
