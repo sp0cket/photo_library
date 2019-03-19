@@ -10,6 +10,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  async: ^2.0.8
   photo_provider:
     git:
       url: git://github.com/sp0cket/flutter_image_provider.git
@@ -24,10 +25,14 @@ dev_dependencies:
 # The following section is specific to Flutter.
 flutter:
 
-  # To add assets to your package, add an assets section, like this:
-   assets:
-    - images/chosen.png
-    - images/triangle_more.png
+  # The following line ensures that the Material Icons font is
+  # included with your application, so that you can use the icons in
+  # the material Icons class.
+  uses-material-design: true
+
+  # To add assets to your application, add an assets section, like this:
+  assets:
+  - assets/chosen.png
   #  - images/a_dot_ham.jpeg
   #
   # For details regarding assets in packages, see

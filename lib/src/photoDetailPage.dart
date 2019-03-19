@@ -10,11 +10,15 @@ class PhotoDetailPage extends StatefulWidget {
     @required this.index,
     @required this.chosenList,
     this.previewSelected = false,
+    this.isMultiChoice,
+    this.sureCallback
   });
-  int photoCount;
-  int index;
-  List<int> chosenList;
-  bool previewSelected;
+  final int photoCount;
+  final int index;
+  final List<int> chosenList;
+  final bool previewSelected;
+  final bool isMultiChoice;
+  final ValueChanged sureCallback;
   @override
   State<StatefulWidget> createState() => new _PhotoDetailPage();
 }
@@ -69,8 +73,7 @@ class _PhotoDetailPage extends State<PhotoDetailPage> {
       var list = await PhotoProvider.getImage(photoIndex, height: 800, width: 800);
       return Container(
         color: Colors.black,
-        child: Image.memory(list, fit: BoxFit.fitWidth,
-        ),
+        child: Image.memory(list, fit: BoxFit.fitWidth),
       );
     }
     Widget _buildItem(BuildContext context, int idx) {
@@ -104,16 +107,21 @@ class _PhotoDetailPage extends State<PhotoDetailPage> {
 
     void _changeCheck(){
       setState(() {
-        int index;
-        if(widget.previewSelected){
-          index = currentPage - 1;
+        int index = widget.previewSelected ? currentPage - 1 : widget.photoCount - currentPage;
+        if(widget.isMultiChoice){
+          if(isChecked){
+            widget.previewSelected ? widget.chosenList.removeAt(index) : widget.chosenList.remove(index);
+          }else{
+            widget.chosenList.add(index);
+          }
         }else{
-          index = widget.photoCount - currentPage;
-        }
-        if(isChecked){
-          widget.previewSelected ? widget.chosenList.removeAt(index) : widget.chosenList.remove(index);
-        }else{
-          widget.chosenList.add(index);
+          print(widget.isMultiChoice);
+          if(widget.chosenList.length > 0){
+            widget.chosenList.clear();
+          }
+          if(!widget.previewSelected){
+            widget.chosenList.add(index);
+          }
         }
       });
       if(widget.previewSelected && widget.chosenList.length <= 0){
@@ -148,7 +156,14 @@ class _PhotoDetailPage extends State<PhotoDetailPage> {
               ),
             ),
             actions: <Widget>[
-              SureButton()
+              SureButton(
+                enable: widget.chosenList.length > 0,
+                sureCallback: (){
+                  print('确认');
+                  Navigator.pop(context);
+                  widget.sureCallback?.call(widget.chosenList);
+                },
+              )
             ],
           ),
         ),
@@ -169,7 +184,8 @@ class _PhotoDetailPage extends State<PhotoDetailPage> {
 //              );
 //            }
 //          },
-          child: PageView.builder(
+          child:
+      PageView.builder(
             pageSnapping: false,
             physics: const PageScrollPhysics(parent: const BouncingScrollPhysics()),
             reverse: widget.previewSelected ? false : true,

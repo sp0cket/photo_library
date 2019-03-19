@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:async/async.dart';
+import 'dart:typed_data';
+import 'dart:async';
 import 'package:photo_provider/photo_provider.dart';
 import './photoDetailPage.dart';
 import './pageBottomWidget.dart';
 import './galleryListDialog.dart';
 import './sureButton.dart';
 class PhotoListPage extends StatefulWidget {
-  PhotoListPage({@required this.sure});
-  ValueChanged sure;
+  PhotoListPage({@required this.sure, this.isMultiChoice});
+  final ValueChanged sure;
+  final bool isMultiChoice;
   @override
   State<StatefulWidget> createState() => new _PhotoListPage();
 }
@@ -16,11 +20,21 @@ class _PhotoListPage extends State<PhotoListPage> {
   List<int> chosenList = [];
   int count = 0;
   int currentGalleryIndex = 0;
+  List<Uint8List> photoList;
+  StreamController<List> _streamController = StreamController<List>.broadcast();
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+    _streamController.close();
+  }
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
     _initPhotoProvider();
+
+    print('init');
   }
 
   _initPhotoProvider() {
@@ -34,89 +48,43 @@ class _PhotoListPage extends State<PhotoListPage> {
 
   Future<Widget> _getImageFromPhotoProvider(int index) async {
 //    print('getimage$index');
-    var list = await PhotoProvider.getImage(index, width: 300, height: 300);
+    var list = await PhotoProvider.getImage(index, width: 200, height: 200);
+//    return list;
     bool isSelected = chosenList.indexOf(index) >= 0;
     return Stack(
       alignment: AlignmentDirectional.center,
       children: <Widget>[
         Positioned(
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          child: GestureDetector(
-            onTap: (){
-              Navigator.of(context).push(
-                new MaterialPageRoute(
-                  builder: (context) => new PhotoDetailPage(
-                      photoCount: count,
-                      index: index,
-                      chosenList: chosenList
-                  )
-                )
-              );//
-            },
-            child: Hero(
-              tag: 'hero$index',
-              flightShuttleBuilder: (flightContext, animation, direction,
-                  fromContext, toContext) {
-                if(direction == HeroFlightDirection.push) {
-                  return Icon(
-                    Icons.audiotrack,
-                    size: 150.0,
-                  );
-                } else if (direction == HeroFlightDirection.pop){
-                  return Icon(
-                    Icons.audiotrack,
-                    size: 70.0,
-                  );
-                }
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: GestureDetector(
+              onTap: (){
+                Navigator.of(context, rootNavigator: true).push(
+                    new PageRouteBuilder(
+                        opaque: false,
+                        barrierDismissible:true,
+                        pageBuilder: (BuildContext context, _, __) {
+                          return PhotoDetailPage(
+                              photoCount: count,
+                              index: index,
+                              chosenList: chosenList,
+                              isMultiChoice: widget.isMultiChoice,
+                              sureCallback: widget.sure
+                          );
+                        }
+                    )
+                ).then((dynamic){
+                  setState(() {});
+                });
               },
-              child: Image.memory(list, fit: BoxFit.cover,),
-            ),
-          )
-        ),
-        IgnorePointer(
-          child: AnimatedContainer(
-            color: isSelected ? Colors.black.withOpacity(0.5) : Colors.transparent,
-            duration: Duration(milliseconds: 300),
-          ),
-        ),
-        Positioned(
-          top: 0.0,
-          right: 0.0,
-          child: GestureDetector(
-            onTap: (){
-              setState(() {
-                if(chosenList.indexOf(index) >= 0){
-                  chosenList.remove(index);
-                }else{
-                  chosenList.add(index);
-                }
-              });
-            },
-            child: Container(
-              padding: const EdgeInsets.fromLTRB(20, 10, 10, 20),
-              decoration: BoxDecoration(
-                border: new Border.all(color: Colors.transparent),
-              ),
-              child: Container(
-                width: 15,
-                height: 15,
-                decoration: BoxDecoration(
-                    border: new Border.all(color: isSelected ? Colors.green : Colors.white),
-                    borderRadius:
-                    const BorderRadius.all(const Radius.circular(2.0)),
-                    color: isSelected ? Colors.green : Colors.transparent
-                ),
-                child: Offstage(
-                    offstage: !isSelected,
-                    child: Image.asset('images/chosen.png',color: Colors.white,)
-                ),
+              child: Hero(
+                tag: 'hero$index',
+                child: Image.memory(list, fit: BoxFit.cover,),
               ),
             )
-          ),
-        )
+        ),
       ],
     );
   }
@@ -127,17 +95,11 @@ class _PhotoListPage extends State<PhotoListPage> {
       builder: (context, snapshot) {
         switch (snapshot.connectionState) {
           case ConnectionState.none:
-            return new Container(
-//                    color: Colors.black,
-            );
+            return Container();
           case ConnectionState.waiting:
-            return new Container(
-//                    color: Colors.yellow,
-            );
+            return Container();
           case ConnectionState.active:
-            return new Container(
-//                    color: Colors.green,
-            );
+            return Container();
           case ConnectionState.done:
             if (snapshot.hasError)
               return Container(
@@ -151,40 +113,114 @@ class _PhotoListPage extends State<PhotoListPage> {
   }
 
   Widget _context() {
-    return Stack(
-      children: <Widget>[
-        Scrollbar(
-          child: GridView.custom(
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 4, mainAxisSpacing: 2.0, crossAxisSpacing: 2.0),
-            childrenDelegate: SliverChildBuilderDelegate(
-                (context, int)=>_imageFutureBuilder(count - int - 1),
-              childCount: count,
-
-            )),
-//            itemCount: count,
-//            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-//                crossAxisCount: 4, mainAxisSpacing: 2.0, crossAxisSpacing: 2.0),
-//            itemBuilder: (ctx, idx) {
-//              return _imageFutureBuilder(count - idx - 1);
-//            }),
-        ),
-        Positioned(
-          bottom: 0.0,
-          left: 0.0,
-          right: 0.0,
-          child: PageBottomWidget(
-            leading: Row(
+    Widget _mainView(index){
+      Widget _chosenView(){
+        return StreamBuilder(
+          stream: _streamController.stream,
+          initialData: chosenList,
+          builder: (context, AsyncSnapshot snapshot){
+            List list = snapshot.data;
+            bool isSelected = list.indexOf(index) >= 0;
+            return Stack(
               children: <Widget>[
-                Text('图片', style: TextStyle(color: Colors.white, fontSize: 16.0),),
-                Image.asset('images/triangle_more.png'),
+                IgnorePointer(
+                  child: AnimatedContainer(
+                    color: isSelected ? Colors.black.withOpacity(0.5) : Colors.transparent,
+                    duration: Duration(milliseconds: 300),
+                  ),
+                ),
+                Positioned(
+                  top: 0.0,
+                  right: 0.0,
+                  child: GestureDetector(
+                    onTap: (){
+                      if(widget.isMultiChoice){
+                        chosenList.indexOf(index) >= 0 ?  chosenList.remove(index) : chosenList.add(index);
+                      }else{
+                        if(chosenList.length > 0){
+                          var tmpIdx = chosenList[0];
+                          chosenList.clear();
+                          if(index != tmpIdx){
+                            chosenList.add(index);
+                          }
+                        }else{
+                          chosenList.add(index);
+                        }
+
+                      }
+                      _streamController.sink.add(chosenList);
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.fromLTRB(20, 10, 10, 20),
+                      decoration: BoxDecoration(
+                        border: new Border.all(color: Colors.transparent),
+                      ),
+                      child: Container(
+                        width: 15,
+                        height: 15,
+                        decoration: BoxDecoration(
+                            border: new Border.all(color: isSelected ? Colors.green : Colors.white),
+                            borderRadius:
+                            const BorderRadius.all(const Radius.circular(2.0)),
+                            color: isSelected ? Colors.green : Colors.transparent
+                        ),
+                        child: Offstage(
+                            offstage: !isSelected,
+                            child:
+                            Center(
+                              child: Icon(Icons.check, color: Colors.white,size: 13,),
+                            )
+                        ),
+                      ),
+                    )
+                  ),
+                )
               ],
-            ),
+            );
+          },
+        );
+      }
+      return Stack(
+        children: <Widget>[
+          _imageFutureBuilder(index),
+          _chosenView()
+        ],
+      );
+    }
+    return Column(
+      children: <Widget>[
+        Expanded(
+          child: Scrollbar(
+            child:
+            GridView.custom(
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 4, mainAxisSpacing: 2.0, crossAxisSpacing: 2.0),
+              childrenDelegate: SliverChildBuilderDelegate(
+                (context, int idx){
+                  var index = count - idx - 1;
+                  return _mainView(index);
+                },
+                childCount: count,
+
+              )),
+          ),
+        ),
+        PageBottomWidget(
+          leading: Row(
+            children: <Widget>[
+              Text('图片', style: TextStyle(color: Colors.white, fontSize: 16.0),),
+//                Image.asset('images/triangle_more.png'),
+            ],
+          ),
 //            leadingCallback: (){ _displayGalleryList(); },
 //            middle: Text('原图', style: TextStyle(color: Colors.white, fontSize: 16.0),),
-            trailing: Text('预览 ${chosenList.length > 0 ? '( '+ chosenList.length.toString() + ' )' : ''}', style: TextStyle(color: Colors.white, fontSize: 16.0)),
-            trailingCallback: (){ _displayPhotoDetailPage(); },
+          trailing: StreamBuilder(
+              stream: _streamController.stream,
+              initialData: chosenList,
+              builder: (context, AsyncSnapshot snapshot)=>
+              Text('预览 ${snapshot.data.length > 0 ? '( '+ snapshot.data.length.toString() + ' )' : ''}', style: TextStyle(color: Colors.white, fontSize: 16.0))
           ),
+          trailingCallback: (){ _displayPhotoDetailPage(); },
         )
       ],
     );
@@ -206,14 +242,15 @@ class _PhotoListPage extends State<PhotoListPage> {
   void _displayPhotoDetailPage(){
     if(chosenList.length > 0){
       Navigator.of(context).push(
-        new MaterialPageRoute(
-          builder: (context) => new PhotoDetailPage(
-            photoCount: count,
-            index: 0,
-            chosenList: chosenList,
-            previewSelected: true,
+          new MaterialPageRoute(
+              builder: (context) => new PhotoDetailPage(
+                  photoCount: count,
+                  index: 0,
+                  chosenList: chosenList,
+                  previewSelected: true,
+                  isMultiChoice: widget.isMultiChoice
+              )
           )
-        )
       );
     }
   }
@@ -228,34 +265,38 @@ class _PhotoListPage extends State<PhotoListPage> {
           backgroundColor: Colors.white,
           leading: OverflowBox(
             alignment: Alignment.centerLeft,
-              maxWidth: 100,
-              child:GestureDetector(
-                onTap: () {
-                  Navigator.pop(context);
-                },
-                child: Padding(
-                  padding: EdgeInsets.only(left: 10),
-                  child: Row(
-                    children: <Widget>[
-                      Container(
-                        child: Icon(Icons.keyboard_arrow_left, color: Colors.black, size: 30,),
-                      ),
-                      Text('图片', style: TextStyle(
-                          color: Colors.black, fontSize: 18
-                        ),
-                      ),
-                    ],
-                  ),
+            maxWidth: 100,
+            child:GestureDetector(
+              onTap: () {
+                Navigator.pop(context);
+              },
+              child: Padding(
+                padding: EdgeInsets.only(left: 10),
+                child: Row(
+                  children: <Widget>[
+                    Container(
+                      child: Icon(Icons.keyboard_arrow_left, color: Colors.black, size: 30,),
+                    ),
+                    Text('图片', style: TextStyle(
+                        color: Colors.black, fontSize: 18
+                    ),
+                    ),
+                  ],
                 ),
               ),
+            ),
           ),
           actions: <Widget>[
-            SureButton(
-              enable: chosenList.length > 0,
-              sureCallback: (){
-                print('确认');
-                widget.sure?.call(chosenList);
-              },
+            StreamBuilder(
+              stream: _streamController.stream,
+              initialData: chosenList,
+              builder: (context, AsyncSnapshot snapshot)=>SureButton(
+                enable: snapshot.data.length > 0,
+                sureCallback: (){
+                  print('确认');
+                  widget.sure?.call(chosenList);
+                },
+              ),
             )
           ],
         ),
@@ -264,4 +305,5 @@ class _PhotoListPage extends State<PhotoListPage> {
     );
   }
 }
+
 
