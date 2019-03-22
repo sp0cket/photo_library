@@ -28,12 +28,14 @@ class _PhotoDetailPage extends State<PhotoDetailPage> {
   int currentPage;
   PageController pageController;
   StreamController<int> pageChangeController = StreamController.broadcast();
-  Stream<int> get pageStream => pageChangeController.stream;
+  StreamController<bool> isSelectedController = StreamController();
+  StreamController<List> listController = StreamController<List>();
+  bool isChecked = false;
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    pageChangeController.add(0);
+
     pageController = PageController(
       initialPage: widget.index,
     );
@@ -49,31 +51,33 @@ class _PhotoDetailPage extends State<PhotoDetailPage> {
   @override
   void dispose() {
     pageChangeController.close();
+    isSelectedController.close();
+    listController.close();
     super.dispose();
   }
 
   void _onPageChanged(int value) {
-    setState(() {
-      if(widget.previewSelected){
-        currentPage = value + 1;
-      }else{
-        currentPage = widget.photoCount - value;
-      }
-
-    });
-    pageChangeController.add(value);
+    if(widget.previewSelected){
+      currentPage = value + 1;
+    }else{
+      currentPage = widget.photoCount - value;
+    }
+    pageChangeController.sink.add(currentPage);
+    isChecked = widget.previewSelected ? true : widget.chosenList.indexOf(widget.photoCount - currentPage) >= 0;
+    isSelectedController.sink.add(isChecked);
   }
   @override
   Widget build(BuildContext context) {
-    bool isChecked = widget.previewSelected ? true : widget.chosenList.indexOf(widget.photoCount - currentPage) >= 0;
+    isChecked = widget.previewSelected ? true : widget.chosenList.indexOf(widget.photoCount - currentPage) >= 0;
+    isSelectedController.sink.add(isChecked);
     int itemCount = widget.previewSelected ? widget.chosenList.length : widget.photoCount;
     Future<Widget> _getImageFromPhotoProvider(int index) async {
 //      print('getimage$index');
       int photoIndex = widget.previewSelected ? widget.chosenList[index] : index;
-      var list = await PhotoProvider.getImage(photoIndex, height: 800, width: 800);
+      var image = await PhotoProvider.getImage(photoIndex);
       return Container(
         color: Colors.black,
-        child: Image.memory(list, fit: BoxFit.fitWidth),
+        child: Image.memory(image.image, fit: BoxFit.fitWidth),
       );
     }
     Widget _buildItem(BuildContext context, int idx) {
@@ -106,24 +110,24 @@ class _PhotoDetailPage extends State<PhotoDetailPage> {
     }
 
     void _changeCheck(){
-      setState(() {
-        int index = widget.previewSelected ? currentPage - 1 : widget.photoCount - currentPage;
-        if(widget.isMultiChoice){
-          if(isChecked){
-            widget.previewSelected ? widget.chosenList.removeAt(index) : widget.chosenList.remove(index);
-          }else{
-            widget.chosenList.add(index);
-          }
+      int index = widget.previewSelected ? currentPage - 1 : widget.photoCount - currentPage;
+      if(widget.isMultiChoice){
+        if(isChecked){
+          widget.previewSelected ? widget.chosenList.removeAt(index) : widget.chosenList.remove(index);
         }else{
-          print(widget.isMultiChoice);
-          if(widget.chosenList.length > 0){
-            widget.chosenList.clear();
-          }
-          if(!widget.previewSelected){
-            widget.chosenList.add(index);
-          }
+          widget.chosenList.add(index);
         }
-      });
+      }else{
+        if(widget.chosenList.length > 0){
+          widget.chosenList.clear();
+        }
+        if(!widget.previewSelected){
+          widget.chosenList.add(index);
+        }
+      }
+      isChecked = !isChecked;
+      isSelectedController.sink.add(isChecked);
+      listController.sink.add(widget.chosenList);
       if(widget.previewSelected && widget.chosenList.length <= 0){
         Navigator.pop(context);
       }
@@ -148,7 +152,13 @@ class _PhotoDetailPage extends State<PhotoDetailPage> {
                     child: Row(
                       children: <Widget>[
                         Icon(Icons.keyboard_arrow_left, color: Colors.black),
-                        Text('$currentPage/$itemCount', style: TextStyle(color: Colors.black, fontSize: 16.0),)
+                        StreamBuilder(
+                            stream: pageChangeController.stream,
+                            initialData: currentPage,
+                            builder: (context, AsyncSnapshot snapshot)=>
+                                Text('${snapshot.data}/$itemCount', style: TextStyle(color: Colors.black, fontSize: 16.0),)
+                        )
+
                       ],
                     ),
                   ),
@@ -156,13 +166,17 @@ class _PhotoDetailPage extends State<PhotoDetailPage> {
               ),
             ),
             actions: <Widget>[
-              SureButton(
-                enable: widget.chosenList.length > 0,
-                sureCallback: (){
-                  print('确认');
-                  Navigator.pop(context);
-                  widget.sureCallback?.call(widget.chosenList);
-                },
+              StreamBuilder(
+                stream: listController.stream,
+                initialData: widget.chosenList,
+                builder: (context, AsyncSnapshot snapshot)=>SureButton(
+                  enable: snapshot.data.length > 0,
+                  sureCallback: (){
+                    print('确认');
+                    Navigator.pop(context);
+                    widget.sureCallback?.call(widget.chosenList);
+                  },
+                ),
               )
             ],
           ),
@@ -170,20 +184,6 @@ class _PhotoDetailPage extends State<PhotoDetailPage> {
         body:
         Hero(
           tag: 'hero${widget.index}',
-//          flightShuttleBuilder: (flightContext, animation, direction,
-//              fromContext, toContext) {
-//            if(direction == HeroFlightDirection.push) {
-//              return Icon(
-//                Icons.audiotrack,
-//                size: 150.0,
-//              );
-//            } else if (direction == HeroFlightDirection.pop){
-//              return Icon(
-//                Icons.audiotrack,
-//                size: 70.0,
-//              );
-//            }
-//          },
           child:
       PageView.builder(
             pageSnapping: false,
@@ -196,21 +196,19 @@ class _PhotoDetailPage extends State<PhotoDetailPage> {
           ),
         ),
         bottomNavigationBar: PageBottomWidget(
-//          leading: Row(
-//            children: <Widget>[
-//              Text('图片', style: TextStyle(color: Colors.white, fontSize: 16.0),),
-//              Icon(Icons.keyboard_arrow_left, color: Colors.black),
-//            ],
-//          ),
-//          middle: Text('原图', style: TextStyle(color: Colors.white, fontSize: 16.0),),
           trailing: Row(
             children: <Widget>[
-              Checkbox(
-                value: isChecked,
-                activeColor: Colors.green,
-                onChanged: (bool newValue){
-                  _changeCheck();
-                },
+              StreamBuilder(
+                stream: isSelectedController.stream,
+                initialData: false,
+                builder: (context, AsyncSnapshot snapshot)=>
+                Checkbox(
+                  value: snapshot.data,
+                  activeColor: Colors.green,
+                  onChanged: (bool newValue){
+                    _changeCheck();
+                  },
+                )
               ),
               Text('选择', style: TextStyle(color: Colors.white, fontSize: 16.0))
             ],

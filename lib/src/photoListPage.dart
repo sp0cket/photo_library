@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:async/async.dart';
 import 'dart:typed_data';
 import 'dart:async';
 import 'package:photo_provider/photo_provider.dart';
@@ -48,8 +47,7 @@ class _PhotoListPage extends State<PhotoListPage> {
 
   Future<Widget> _getImageFromPhotoProvider(int index) async {
 //    print('getimage$index');
-    var list = await PhotoProvider.getImage(index, width: 200, height: 200);
-//    return list;
+    var image = await PhotoProvider.getImage(index, width: 200, height: 200);
     bool isSelected = chosenList.indexOf(index) >= 0;
     return Stack(
       alignment: AlignmentDirectional.center,
@@ -81,7 +79,7 @@ class _PhotoListPage extends State<PhotoListPage> {
               },
               child: Hero(
                 tag: 'hero$index',
-                child: Image.memory(list, fit: BoxFit.cover,),
+                child: Image.memory(image.image, fit: BoxFit.cover,),
               ),
             )
         ),

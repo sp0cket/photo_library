@@ -75,7 +75,7 @@
         <entry key="photo_provider">
           <value>
             <list>
-              <option value="$USER_HOME$/.pub-cache/git/flutter_image_provider-fb0007e7f29db69364984aa0c1f463e311294f6d/lib" />
+              <option value="$USER_HOME$/.pub-cache/git/flutter_image_provider-96f5c7ea0e735e4b0535846db380aaa589479ec5/lib" />
             </list>
           </value>
         </entry>
@@ -152,7 +152,7 @@
       </option>
     </properties>
     <CLASSES>
-      <root url="file://$USER_HOME$/.pub-cache/git/flutter_image_provider-fb0007e7f29db69364984aa0c1f463e311294f6d/lib" />
+      <root url="file://$USER_HOME$/.pub-cache/git/flutter_image_provider-96f5c7ea0e735e4b0535846db380aaa589479ec5/lib" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dartlang.org/async-2.0.8/lib" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dartlang.org/boolean_selector-1.0.4/lib" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dartlang.org/charcode-1.1.2/lib" />
