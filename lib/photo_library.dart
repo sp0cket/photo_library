@@ -7,8 +7,8 @@ import 'dart:async';
 
 
 class PhotoLibrary{
-  static Future getAllPhoto({@required BuildContext context, isMultiChoice = true}){
-    return _openGalleryContentPage(context, isMultiChoice);
+  static Future getAllPhoto({@required BuildContext context, isMultiChoice = true, Function onDone}){
+    return _openGalleryContentPage(context, isMultiChoice, onDone);
   }
   static Future<String> getPhotoUrl(index){
     Future<String> url;
@@ -53,7 +53,7 @@ class PhotoLibrary{
           case ConnectionState.done:
             if (snapshot.hasError)
               return Container(
-                color: Colors.red,
+                color: Colors.white,
               );
             else
               return snapshot.data;
@@ -64,10 +64,10 @@ class PhotoLibrary{
 }
 
 Future _openGalleryContentPage(
-    BuildContext context, bool isMultiChoice) async {
+    BuildContext context, bool isMultiChoice, Function onDone) async {
   return Navigator.of(context, rootNavigator: true).push(
     MaterialPageRoute(
-      builder: (ctx) => PhotoListPage(sure: (chosenList){Navigator.pop(context, chosenList);},isMultiChoice: isMultiChoice),
+      builder: (ctx) => PhotoListPage(onDone: onDone,isMultiChoice: isMultiChoice),
     ),
   );
 }

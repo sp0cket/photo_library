@@ -100,7 +100,7 @@ class _PhotoDetailPage extends State<PhotoDetailPage> {
             case ConnectionState.done:
               if (snapshot.hasError)
                 return Container(
-                  color: Colors.red,
+                  color: Colors.white,
                 );
               else
                 return snapshot.data;

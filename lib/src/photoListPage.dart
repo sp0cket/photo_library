@@ -8,9 +8,9 @@ import './pageBottomWidget.dart';
 import './galleryListDialog.dart';
 import './sureButton.dart';
 class PhotoListPage extends StatefulWidget {
-  PhotoListPage({@required this.sure, this.isMultiChoice});
-  final ValueChanged sure;
+  PhotoListPage({this.onDone, this.isMultiChoice});
   final bool isMultiChoice;
+  final Function onDone;
   @override
   State<StatefulWidget> createState() => new _PhotoListPage();
 }
@@ -69,7 +69,7 @@ class _PhotoListPage extends State<PhotoListPage> {
                               index: index,
                               chosenList: chosenList,
                               isMultiChoice: widget.isMultiChoice,
-                              sureCallback: widget.sure
+                              sureCallback: widget.onDone != null ? widget.onDone(chosenList) : (){}
                           );
                         }
                     )
@@ -101,7 +101,7 @@ class _PhotoListPage extends State<PhotoListPage> {
           case ConnectionState.done:
             if (snapshot.hasError)
               return Container(
-                color: Colors.red,
+                color: Colors.white,
               );
             else
               return snapshot.data;
@@ -291,8 +291,9 @@ class _PhotoListPage extends State<PhotoListPage> {
               builder: (context, AsyncSnapshot snapshot)=>SureButton(
                 enable: snapshot.data.length > 0,
                 sureCallback: (){
-                  print('确认');
-                  widget.sure?.call(chosenList);
+                  if(widget.onDone != null){
+                    widget.onDone(chosenList);
+                  }
                 },
               ),
             )
