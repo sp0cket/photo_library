@@ -18,7 +18,7 @@ class PhotoDetailPage extends StatefulWidget {
   final List<int> chosenList;
   final bool previewSelected;
   final bool isMultiChoice;
-  final ValueChanged sureCallback;
+  final Function sureCallback;
   @override
   State<StatefulWidget> createState() => new _PhotoDetailPage();
 }
@@ -33,9 +33,7 @@ class _PhotoDetailPage extends State<PhotoDetailPage> {
   bool isChecked = false;
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
-
     pageController = PageController(
       initialPage: widget.index,
     );
@@ -87,15 +85,15 @@ class _PhotoDetailPage extends State<PhotoDetailPage> {
           switch (snapshot.connectionState) {
             case ConnectionState.none:
               return new Container(
-                    color: Colors.black,
+                color: Colors.black,
               );
             case ConnectionState.waiting:
               return new Container(
-                    color: Colors.black,
+                color: Colors.black,
               );
             case ConnectionState.active:
               return new Container(
-                    color: Colors.black,
+                color: Colors.black,
               );
             case ConnectionState.done:
               if (snapshot.hasError)
@@ -135,88 +133,90 @@ class _PhotoDetailPage extends State<PhotoDetailPage> {
 
     // TODO: implement build
     return Scaffold(
-        appBar: PreferredSize(
-          preferredSize: Size.fromHeight(45.0),
-          child: AppBar(
-            backgroundColor: Colors.white,
-            leading: OverflowBox(
-              alignment: Alignment.centerLeft,
-              maxWidth: 100,
-              child: GestureDetector(
-                onTap: () {
-                  Navigator.pop(context);
-                },
-                child: Container(
-                  child: Padding(
-                    padding: EdgeInsets.only(left: 10),
-                    child: Row(
-                      children: <Widget>[
-                        Icon(Icons.keyboard_arrow_left, color: Colors.black),
-                        StreamBuilder(
-                            stream: pageChangeController.stream,
-                            initialData: currentPage,
-                            builder: (context, AsyncSnapshot snapshot)=>
-                                Text('${snapshot.data}/$itemCount', style: TextStyle(color: Colors.black, fontSize: 16.0),)
-                        )
+      appBar: PreferredSize(
+        preferredSize: Size.fromHeight(45.0),
+        child: AppBar(
+          backgroundColor: Colors.white,
+          leading: OverflowBox(
+            alignment: Alignment.centerLeft,
+            maxWidth: 100,
+            child: GestureDetector(
+              onTap: () {
+                Navigator.pop(context);
+              },
+              child: Container(
+                child: Padding(
+                  padding: EdgeInsets.only(left: 10),
+                  child: Row(
+                    children: <Widget>[
+                      Icon(Icons.keyboard_arrow_left, color: Colors.black),
+                      StreamBuilder(
+                          stream: pageChangeController.stream,
+                          initialData: currentPage,
+                          builder: (context, AsyncSnapshot snapshot)=>
+                              Text('${snapshot.data}/$itemCount', style: TextStyle(color: Colors.black, fontSize: 16.0),)
+                      )
 
-                      ],
-                    ),
+                    ],
                   ),
                 ),
               ),
             ),
-            actions: <Widget>[
-              StreamBuilder(
-                stream: listController.stream,
-                initialData: widget.chosenList,
-                builder: (context, AsyncSnapshot snapshot)=>SureButton(
-                  enable: snapshot.data.length > 0,
-                  sureCallback: (){
-                    print('确认');
-                    Navigator.pop(context);
-                    widget.sureCallback?.call(widget.chosenList);
-                  },
-                ),
-              )
-            ],
           ),
+          actions: <Widget>[
+            StreamBuilder(
+              stream: listController.stream,
+              initialData: widget.chosenList,
+              builder: (context, AsyncSnapshot snapshot)=>SureButton(
+                enable: snapshot.data.length > 0,
+                sureCallback: (){
+                  if(widget.sureCallback != null){
+                    widget.sureCallback(widget.chosenList);
+                  }
+                  Navigator.pop(context);
+//                    widget.sureCallback?.call(widget.chosenList);
+                },
+              ),
+            )
+          ],
         ),
-        body:
-        Hero(
-          tag: 'hero${widget.index}',
-          child:
-      PageView.builder(
-            pageSnapping: false,
-            physics: const PageScrollPhysics(parent: const BouncingScrollPhysics()),
-            reverse: widget.previewSelected ? false : true,
-            controller: pageController,
-            itemBuilder: _buildItem,
-            itemCount: itemCount,
-            onPageChanged: _onPageChanged,
-          ),
+      ),
+      body:
+      Hero(
+        tag: 'hero${widget.index}',
+        child:
+        PageView.builder(
+          pageSnapping: false,
+          physics: const PageScrollPhysics(parent: const BouncingScrollPhysics()),
+          reverse: widget.previewSelected ? false : true,
+          controller: pageController,
+          itemBuilder: _buildItem,
+          itemCount: itemCount,
+          onPageChanged: _onPageChanged,
         ),
-        bottomNavigationBar: PageBottomWidget(
-          trailing: Row(
-            children: <Widget>[
-              StreamBuilder(
+      ),
+      bottomNavigationBar: PageBottomWidget(
+        trailing: Row(
+          children: <Widget>[
+            StreamBuilder(
                 stream: isSelectedController.stream,
                 initialData: false,
                 builder: (context, AsyncSnapshot snapshot)=>
-                Checkbox(
-                  value: snapshot.data,
-                  activeColor: Colors.green,
-                  onChanged: (bool newValue){
-                    _changeCheck();
-                  },
-                )
-              ),
-              Text('选择', style: TextStyle(color: Colors.white, fontSize: 16.0))
-            ],
-          ),
-          trailingCallback: (){
-            _changeCheck();
-          },
+                    Checkbox(
+                      value: snapshot.data,
+                      activeColor: Colors.green,
+                      onChanged: (bool newValue){
+                        _changeCheck();
+                      },
+                    )
+            ),
+            Text('选择', style: TextStyle(color: Colors.white, fontSize: 16.0))
+          ],
         ),
+        trailingCallback: (){
+          _changeCheck();
+        },
+      ),
     );
   }
 }

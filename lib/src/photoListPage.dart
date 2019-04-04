@@ -69,7 +69,7 @@ class _PhotoListPage extends State<PhotoListPage> {
                               index: index,
                               chosenList: chosenList,
                               isMultiChoice: widget.isMultiChoice,
-                              sureCallback: widget.onDone != null ? widget.onDone(chosenList) : (){}
+                              sureCallback: widget.onDone
                           );
                         }
                     )
@@ -131,46 +131,46 @@ class _PhotoListPage extends State<PhotoListPage> {
                   top: 0.0,
                   right: 0.0,
                   child: GestureDetector(
-                    onTap: (){
-                      if(widget.isMultiChoice){
-                        chosenList.indexOf(index) >= 0 ?  chosenList.remove(index) : chosenList.add(index);
-                      }else{
-                        if(chosenList.length > 0){
-                          var tmpIdx = chosenList[0];
-                          chosenList.clear();
-                          if(index != tmpIdx){
+                      onTap: (){
+                        if(widget.isMultiChoice){
+                          chosenList.indexOf(index) >= 0 ?  chosenList.remove(index) : chosenList.add(index);
+                        }else{
+                          if(chosenList.length > 0){
+                            var tmpIdx = chosenList[0];
+                            chosenList.clear();
+                            if(index != tmpIdx){
+                              chosenList.add(index);
+                            }
+                          }else{
                             chosenList.add(index);
                           }
-                        }else{
-                          chosenList.add(index);
-                        }
 
-                      }
-                      _streamController.sink.add(chosenList);
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.fromLTRB(20, 10, 10, 20),
-                      decoration: BoxDecoration(
-                        border: new Border.all(color: Colors.transparent),
-                      ),
+                        }
+                        _streamController.sink.add(chosenList);
+                      },
                       child: Container(
-                        width: 15,
-                        height: 15,
+                        padding: const EdgeInsets.fromLTRB(20, 10, 10, 20),
                         decoration: BoxDecoration(
-                            border: new Border.all(color: isSelected ? Colors.green : Colors.white),
-                            borderRadius:
-                            const BorderRadius.all(const Radius.circular(2.0)),
-                            color: isSelected ? Colors.green : Colors.transparent
+                          border: new Border.all(color: Colors.transparent),
                         ),
-                        child: Offstage(
-                            offstage: !isSelected,
-                            child:
-                            Center(
-                              child: Icon(Icons.check, color: Colors.white,size: 13,),
-                            )
+                        child: Container(
+                          width: 15,
+                          height: 15,
+                          decoration: BoxDecoration(
+                              border: new Border.all(color: isSelected ? Colors.green : Colors.white),
+                              borderRadius:
+                              const BorderRadius.all(const Radius.circular(2.0)),
+                              color: isSelected ? Colors.green : Colors.transparent
+                          ),
+                          child: Offstage(
+                              offstage: !isSelected,
+                              child:
+                              Center(
+                                child: Icon(Icons.check, color: Colors.white,size: 13,),
+                              )
+                          ),
                         ),
-                      ),
-                    )
+                      )
                   ),
                 )
               ],
@@ -191,16 +191,16 @@ class _PhotoListPage extends State<PhotoListPage> {
           child: Scrollbar(
             child:
             GridView.custom(
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 4, mainAxisSpacing: 2.0, crossAxisSpacing: 2.0),
-              childrenDelegate: SliverChildBuilderDelegate(
-                (context, int idx){
-                  var index = count - idx - 1;
-                  return _mainView(index);
-                },
-                childCount: count,
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 4, mainAxisSpacing: 2.0, crossAxisSpacing: 2.0),
+                childrenDelegate: SliverChildBuilderDelegate(
+                      (context, int idx){
+                    var index = count - idx - 1;
+                    return _mainView(index);
+                  },
+                  childCount: count,
 
-              )),
+                )),
           ),
         ),
         PageBottomWidget(
@@ -216,7 +216,7 @@ class _PhotoListPage extends State<PhotoListPage> {
               stream: _streamController.stream,
               initialData: chosenList,
               builder: (context, AsyncSnapshot snapshot)=>
-              Text('预览 ${snapshot.data.length > 0 ? '( '+ snapshot.data.length.toString() + ' )' : ''}', style: TextStyle(color: Colors.white, fontSize: 16.0))
+                  Text('预览 ${snapshot.data.length > 0 ? '( '+ snapshot.data.length.toString() + ' )' : ''}', style: TextStyle(color: Colors.white, fontSize: 16.0))
           ),
           trailingCallback: (){ _displayPhotoDetailPage(); },
         )
