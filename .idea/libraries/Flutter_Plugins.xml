@@ -1,6 +1,8 @@
 <component name="libraryTable">
   <library name="Flutter Plugins" type="FlutterPluginsLibraryType">
-    <CLASSES />
+    <CLASSES>
+      <root url="file://$PROJECT_DIR$/../github/flutter_image_provider" />
+    </CLASSES>
     <JAVADOC />
     <SOURCES />
   </library>

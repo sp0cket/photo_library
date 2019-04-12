@@ -20,6 +20,7 @@ class _PhotoListPage extends State<PhotoListPage> {
   int count = 0;
   int currentGalleryIndex = 0;
   List<Uint8List> photoList;
+  bool flag = true;
   StreamController<List> _streamController = StreamController<List>.broadcast();
   @override
   void dispose() {
@@ -37,12 +38,27 @@ class _PhotoListPage extends State<PhotoListPage> {
   }
 
   _initPhotoProvider() {
-    PhotoProvider.init(PhotoProviderType.All);
-    PhotoProvider.getImagesCount().then((count) {
-      setState(() {
-        this.count = count;
+    if(flag){
+      PhotoProvider.init(PhotoProviderType.All);
+      PhotoProvider.getImagesCount().then((count) {
+        setState(() {
+          this.count = count;
+        });
       });
-    });
+      flag = false;
+    }
+  }
+
+  @override
+  void deactivate() {
+    super.deactivate();
+  }
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+//    setState(() {
+//      count = 0;
+//    });
   }
 
   Future<Widget> _getImageFromPhotoProvider(int index) async {
@@ -292,6 +308,9 @@ class _PhotoListPage extends State<PhotoListPage> {
                 enable: snapshot.data.length > 0,
                 sureCallback: (){
                   if(widget.onDone != null){
+                    setState(() {
+                      count = 0;
+                    });
                     widget.onDone(chosenList);
                   }
                 },

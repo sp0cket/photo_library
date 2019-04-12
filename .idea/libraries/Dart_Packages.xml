@@ -75,7 +75,7 @@
         <entry key="photo_provider">
           <value>
             <list>
-              <option value="$USER_HOME$/.pub-cache/git/flutter_image_provider-a7584c885e2c4aff4a0cf0986c0011109090cf7f/lib" />
+              <option value="$PROJECT_DIR$/../github/flutter_image_provider/lib" />
             </list>
           </value>
         </entry>
@@ -152,7 +152,6 @@
       </option>
     </properties>
     <CLASSES>
-      <root url="file://$USER_HOME$/.pub-cache/git/flutter_image_provider-a7584c885e2c4aff4a0cf0986c0011109090cf7f/lib" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dartlang.org/async-2.0.8/lib" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dartlang.org/boolean_selector-1.0.4/lib" />
       <root url="file://$USER_HOME$/.pub-cache/hosted/pub.dartlang.org/charcode-1.1.2/lib" />
@@ -173,6 +172,7 @@
       <root url="file://$PROJECT_DIR$/../flutter/bin/cache/pkg/sky_engine/lib" />
       <root url="file://$PROJECT_DIR$/../flutter/packages/flutter/lib" />
       <root url="file://$PROJECT_DIR$/../flutter/packages/flutter_test/lib" />
+      <root url="file://$PROJECT_DIR$/../github/flutter_image_provider/lib" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />
